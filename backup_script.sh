@@ -1,19 +1,16 @@
 #!/bin/bash
 # script works on Ubuntu 16.04 and requires sudo privileges during runtime
-
-
 DMYHMS=$(date +"%d_%m_%Y_%H_%M_%S")
 BACKUP=bkp_settings_"$DMYHMS"
 
-
 # backs up installed packages from DPKG and saves user profile settings
-if [ $1 == "--help" ]; then
+if [[ $1 == "--help" ]] || [ $# -lt 3 ]; then
     echo "	--help - for help message"
     echo "	-b - for user settings backup"
     echo "	-r <file_name> - for user settings to restoration"
 fi
 
-if [ $1 == "-b" ]; then 
+if [[ $1 == "-b" ]]; then 
     echo " Backing up the user SETTINGS!"
     mkdir "$BACKUP"
     dpkg --get-selections > ~/"$BACKUP"/Package.list
@@ -29,7 +26,7 @@ if [ $1 == "-b" ]; then
 fi
 
 ##  Restoration process
-if [ $1 == "-r" ]; then
+if [[ $1 == "-r" ]]; then
     echo "Restoring the user SETTINGS!"
     if [ -f $2 ]; then
 	file=$(basename "$2")
