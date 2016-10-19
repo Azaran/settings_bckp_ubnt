@@ -3,6 +3,15 @@
 DMYHMS=$(date +"%d_%m_%Y_%H_%M_%S")
 BACKUP=bkp_settings_"$DMYHMS"
 
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
 # backs up installed packages from DPKG and saves user profile settings
 if [[ $1 == "--help" ]] || [ $# -lt 3 ]; then
     echo "	--help - for help message"
@@ -13,11 +22,11 @@ fi
 if [[ $1 == "-b" ]]; then 
     echo " Backing up the user SETTINGS!"
     mkdir "$BACKUP"
-    dpkg --get-selections > ~/"$BACKUP"/Package.list
-    sudo cp -R /etc/apt/sources.list* ~/"$BACKUP"/
-    sudo apt-key exportall > ~/"$BACKUP"/Repo.keys
-    rsync --progress /home/`whoami` /home/`whoami`/"$BACKUP"/
-    tar -czf "$BACKUP".zip "$BACKUP"
+    dpkg --get-selections > "$DIR"/"$BACKUP"/Package.list
+    sudo cp -R /etc/apt/sources.list* "$DIR"/"$BACKUP"/
+    sudo apt-key exportall > "$DIR"/"$BACKUP"/Repo.keys
+    rsync --progress /home/`whoami` "$DIR"/"$BACKUP"/
+    zip -r "$BACKUP".zip "$BACKUP" > /dev/null
     if [ ! -d "./backup" ]; then
 	mkdir ./backup
     fi
@@ -36,7 +45,7 @@ if [[ $1 == "-r" ]]; then
     fi
     echo "$FOLDER"
     tar -xf $2
-    rsync --progress /path/to/user/profile/"$BACKUP"/here /home/`whoami`
+    rsync --progress "$DIR"/"$FOLDER" /home/`whoami`
     sudo apt-key add ~/Repo.keys
     sudo cp -R ~/sources.list* /etc/apt/
     sudo apt-get update
